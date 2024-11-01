@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Takealot Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        input[type="url"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input[type="url"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: background-color 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            margin-top: 1.5rem;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #2ecc71;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #fde8e8;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .success {
+            color: #27ae60;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #e8f8f0;
+            border-radius: 4px;
+            display: none;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .notes {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .notes h2 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .notes ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .notes li {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+
+        .notes li:before {
+            content: "•";
+            color: #3498db;
+            position: absolute;
+            left: 0;
+        }
+
+        /* Animation for the button */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Takealot Product Scraper</h1>
+        <p class="description">Enter a Takealot product listing URL to scrape product information and download as Excel.</p>
+        
+        <form id="scraperForm">
+            <div class="form-group">
+                <label for="url">Takealot URL:</label>
+                <input 
+                    type="url" 
+                    id="url" 
+                    name="url" 
+                    placeholder="https://www.takealot.com/category..." 
+                    required
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+            </div>
+            
+            <button type="submit" id="submitButton">Start Scraping</button>
+        </form>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">Preparing to scrape...</div>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+        <div class="success" id="successMessage"></div>
+
+        <div class="notes">
+            <h2>Notes:</h2>
+            <ul>
+                <li>Make sure to enter a valid Takealot product listing URL</li>
+                <li>Large product listings may take several minutes to scrape</li>
+                <li>The Excel file will download automatically when scraping is complete</li>
+                <li>Do not close the browser window that opens during scraping</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('scraperForm');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const submitButton = document.getElementById('submitButton');
+        let eventSource = null;
+
+        function startProgressUpdates() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource('/progress');
+            eventSource.onmessage = (event) => {
+                const { progress } = JSON.parse(event.data);
+                progressBar.style.width = `${progress}%`;
+                
+                // Update text based on progress
+                if (progress < 20) {
+                    progressText.textContent = `Initializing scraper... ${progress}%`;
+                } else if (progress < 50) {
+                    progressText.textContent = `Loading products... ${progress}%`;
+                } else if (progress < 70) {
+                    progressText.textContent = `Extracting product data... ${progress}%`;
+                } else if (progress < 100) {
+                    progressText.textContent = `Processing product details... ${progress}%`;
+                } else {
+                    progressText.textContent = `Scraping complete! ${progress}%`;
+                    eventSource.close();
+                }
+            };
+
+            eventSource.onerror = () => {
+                eventSource.close();
+            };
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            
+            // Validate URL
+            if (!url.includes('takealot.com')) {
+                errorMessage.textContent = 'Please enter a valid Takealot URL';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            // Reset state
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            progressContainer.style.display = 'block';
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading-spinner"></span>Scraping...';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Preparing to scrape...';
+
+            // Start progress updates
+            startProgressUpdates();
+
+            try {
+                const response = await fetch('/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                if (!response.ok) {
+                    throw new Error(await response.text());
+                }
+
+                // Handle file download
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = 'takealot_products.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                successMessage.textContent = 'Scraping completed! Your Excel file is downloading...';
+                successMessage.style.display = 'block';
+            } catch (error) {
+                errorMessage.textContent = error.message || 'An error occurred while scraping';
+                errorMessage.style.display = 'block';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Start Scraping';
+                if (eventSource) {
+                    eventSource.close();
+                }
+                // Keep progress display for a moment if successful
+                if (!errorMessage.style.display || errorMessage.style.display === 'none') {
+                    setTimeout(() => {
+                        progressContainer.style.display = 'none';
+                    }, 2000);
+                } else {
+                    progressContainer.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
